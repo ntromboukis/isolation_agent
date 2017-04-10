@@ -208,7 +208,7 @@ class CustomPlayer:
                         self.best_score = temp_score
                         self.best_move = move
                 else:
-                    temp_score = score(self.game.forecast_move(move), self.game.inactive_player)
+                    temp_score = self.score(self.game.forecast_move(move), self.game.inactive_player)
                     if temp_score < self.best_score:
                         self.best_score = temp_score
                         self.best_move = move
