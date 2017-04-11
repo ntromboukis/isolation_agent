@@ -138,8 +138,12 @@ class CustomPlayer:
             if not self.legal_moves:
                 return -1, -1
 
-            best_move = self.minimax(self.game, 0)
-            return best_move
+            minimax_result = self.minimax(self.game, 1)
+            best_move = minimax_result[1]
+            best_score = minimax_result[0]
+            print("*******Best Move*******")
+            print(minimax_result)
+            return minimax_result
             # pass
 
         except Timeout:
@@ -184,36 +188,62 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        self.legal_moves = game.get_legal_moves(self)
-        self.best_move = self.legal_moves[0]
-        self.best_score = None
+        self.best_move = 0
+        self.best_score = float(0)
+        own_legal_moves = game.get_legal_moves(self)
 
+        print("\n\n$$$$$$ GAME BELOW $$$$$$")
+        print("depth: %s, best score: %s, best move: %s" % (depth, self.best_score, self.best_move))
+        print(game.to_string())
         if depth > 0:
             if maximizing_player:
-                for next_move in self.legal_moves:
-                    temp_board = self.game.forecast_move(next_move)
-                    self.minimax(temp_board, depth-1, False)
-                    return next_move, self.score()
-            else:
-                for next_move in self.legal_moves:
-                    temp_board = self.game.forecast_move(next_move)
-                    self.minimax(temp_board, depth-1, True)
-                    return next_move, self.score()
-
-        if depth == 0:
-            for move in self.legal_moves:
-                if maximizing_player:
-                    temp_score = self.score(self.game.forecast_move(move), self.game.active_player)
+                print("++++ in max layer ++++")
+                for move in own_legal_moves:
+                    print("legal moves for my pos \n%s" % (own_legal_moves))
+                    print("testing move:")
+                    print(move)
+                    temp_board = game.forecast_move(move)
+                    self.minimax(temp_board, depth - 1, False)
+                    temp_score = self.score(game.forecast_move(move), game.active_player)
+                    print("max temp score")
+                    print(temp_score)
                     if temp_score > self.best_score:
                         self.best_score = temp_score
                         self.best_move = move
-                else:
-                    temp_score = self.score(self.game.forecast_move(move), self.game.inactive_player)
+            else:
+                print("---- in min layer -----")
+                opp = game.active_player
+                opp_legal_moves = game.get_legal_moves(opp)
+                for move in opp_legal_moves:
+                    print("legal moves for opp pos: \n%s" % (opp_legal_moves))
+                    print("testing opponent move")
+                    print(move)
+                    temp_board = game.forecast_move(move)
+                    self.minimax(temp_board, depth-1, True)
+                    temp_score = self.score(game.forecast_move(move), game.inactive_player)
+                    print("min temp score")
+                    print(temp_score)
                     if temp_score < self.best_score:
                         self.best_score = temp_score
                         self.best_move = move
-
-        return self.best_move, self.best_score
+        if depth == 0:
+            if maximizing_player:
+                for move in own_legal_moves:
+                    temp_score = self.score(game.forecast_move(move), game.active_player)
+                    if temp_score > self.best_score:
+                        self.best_score = temp_score
+                        self.best_move = move
+            else:
+                opp = game.active_player
+                opp_legal_moves = game.get_legal_moves(opp)
+                for move in opp_legal_moves:
+                    temp_score = self.score(game.forecast_move(move), game.inactive_player)
+                    if temp_score < self.best_score:
+                        self.best_score = temp_score
+                        self.best_move = move
+        print("***** BEST SCORE and  BEST MOVE *****")
+        print(self.best_score, self.best_move)
+        return self.best_score, self.best_move
 
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
